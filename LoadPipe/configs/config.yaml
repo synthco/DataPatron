@@ -1,0 +1,14 @@
+source:
+  folder_id: "Folder ID"
+  pattern : "*.csv"
+chunk:
+  chunk_mb: 1024
+  cache_gb: 30
+process:
+  n_jobs: 10
+  kind: "zst->csv "
+  options: {}
+upload:
+  folder_id: "yyy"
+  name_template: "{basename}.csv"
+  chunk_mb: 64
