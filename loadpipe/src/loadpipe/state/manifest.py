@@ -46,19 +46,20 @@ class Manifest:
         cur = self._conn.execute(
             "SELECT file_id, name, etag, modified, bytes_done, updated_at"
             " FROM downloads WHERE file_id = ?",
-            (file_id))
+            (file_id,),
+        )
         row = cur.fetchone()
         return dict(row) if row else None
 
     def upsert_download(
-            self,
-            *,
-            file_id: str,
-            name: Optional[str] = None,
-            etag: Optional[str] = None,
-            modified: Optional[str] = None,
-            bytes_done: int = 0,
-            updated_at: Optional[str] = None
+        self,
+        *,
+        file_id: str,
+        name: Optional[str] = None,
+        etag: Optional[str] = None,
+        modified: Optional[str] = None,
+        bytes_done: int = 0,
+        updated_at: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Insert or update a download record"""
 
@@ -67,28 +68,29 @@ class Manifest:
             if (
                 existing.get("etag")
                 and etag
-                and existing["etag"] != ["etag"]
-            )or(
+                and existing["etag"] != etag
+            ) or (
                 existing.get("modified")
                 and modified
-                and existing["modified"] != modified):
+                and existing["modified"] != modified
+            ):
                 raise ResumeMismatchError(
                     "Etag or modified for downloading is changed. Try again"
-            )
+                )
 
         with self._conn:
             self._conn.execute(
                 """
-            INSERT INTO downloads (file_id, name, etag, modified, bytes_done, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?)
-            ON CONFLICT(file_id) DO UPDATE SET
-                name = excluded.name,
-                etag = COALESCE(excluded.etag, downloads.etag),
-                modified = COALESCE(excluded.modified, downloads.modified),
-                bytes_done = excluded.bytes_done,
-                updated_at = excluded.updated_at
+                INSERT INTO downloads (file_id, name, etag, modified, bytes_done, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(file_id) DO UPDATE SET
+                    name = excluded.name,
+                    etag = COALESCE(excluded.etag, downloads.etag),
+                    modified = COALESCE(excluded.modified, downloads.modified),
+                    bytes_done = excluded.bytes_done,
+                    updated_at = excluded.updated_at
                 """,
-                (file_id, name, etag, modified, bytes_done, updated_at)
+                (file_id, name, etag, modified, bytes_done, updated_at),
             )
         return self.get_download(file_id) or {}
 
@@ -104,15 +106,15 @@ class Manifest:
         return dict(row) if row else None
 
     def upsert_upload(
-            self,
-            *,
-            session_id: str,
-            file_id: Optional[str] = None,
-            name: Optional[str] = None,
-            folder_id: Optional[str] = None,
-            bytes_done: int = 0,
-            total: Optional[int] = None,
-            updated_at: Optional[str] = None,
+        self,
+        *,
+        session_id: str,
+        file_id: Optional[str] = None,
+        name: Optional[str] = None,
+        folder_id: Optional[str] = None,
+        bytes_done: int = 0,
+        total: Optional[int] = None,
+        updated_at: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Insert or update an upload record."""
 
@@ -120,8 +122,8 @@ class Manifest:
             self._conn.execute(
                 """
                 INSERT INTO uploads (session_id, file_id, name, folder_id, bytes_done, total, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(session_id) DO
-                UPDATE SET
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(session_id) DO UPDATE SET
                     file_id = excluded.file_id,
                     name = excluded.name,
                     folder_id = excluded.folder_id,
@@ -138,12 +140,12 @@ class Manifest:
     # Runs
     # ------------------------------------------------------------------
     def start_run(
-            self,
-            *,
-            run_id: str,
-            cmd: str,
-            started_at: Optional[str] = None,
-            status: str = "running",
+        self,
+        *,
+        run_id: str,
+        cmd: str,
+        started_at: Optional[str] = None,
+        status: str = "running",
     ) -> Dict[str, Any]:
         """Create or reset a run entry."""
 
@@ -154,8 +156,8 @@ class Manifest:
             self._conn.execute(
                 """
                 INSERT INTO runs (run_id, cmd, started_at, finished_at, status)
-                VALUES (?, ?, ?, NULL, ?) ON CONFLICT(run_id) DO
-                UPDATE SET
+                VALUES (?, ?, ?, NULL, ?)
+                ON CONFLICT(run_id) DO UPDATE SET
                     cmd = excluded.cmd,
                     started_at = excluded.started_at,
                     finished_at = NULL,
@@ -167,11 +169,11 @@ class Manifest:
         return self.get_run(run_id)
 
     def finish_run(
-            self,
-            *,
-            run_id: str,
-            status: str,
-            finished_at: Optional[str] = None,
+        self,
+        *,
+        run_id: str,
+        status: str,
+        finished_at: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Update the run entry with a final status."""
 
@@ -183,7 +185,7 @@ class Manifest:
                 """
                 UPDATE runs
                 SET finished_at = ?,
-                    status      = ?
+                    status = ?
                 WHERE run_id = ?
                 """,
                 (finished_at, status, run_id),
@@ -203,6 +205,3 @@ class Manifest:
         return dict(row) if row else None
 
 __all__ = ["Manifest"]
-
-
-
