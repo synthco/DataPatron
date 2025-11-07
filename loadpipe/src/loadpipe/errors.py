@@ -106,3 +106,15 @@ class IntegrityError(LoadpipeError):
     """Local cache or manifest integrity issue."""
 
     default_message = "Manifest or cache appears corrupted."
+
+
+class StorageOptionsError(LoadpipeError):
+    """Raised when filesystem storage kwargs are missing or invalid."""
+
+    default_message = "Invalid filesystem storage options."
+
+
+class DrivePathError(LoadpipeError):
+    """Raised when a Drive URL cannot be parsed."""
+
+    default_message = "Drive URL is invalid."

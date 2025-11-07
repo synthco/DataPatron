@@ -15,7 +15,8 @@ authors = [{ name = "AC DC PROCESSING" }]
 dependencies = [
     "typer>=0.12.0",
     "rich>=13.7.0",
-    "PyYAML>=6.0.1"
+    "PyYAML>=6.0.1",
+    "fsspec>=2024.3.0"
 ]
 
 [project.optional-dependencies]
@@ -33,6 +34,9 @@ extras = [
 
 [project.scripts]
 lp = "loadpipe.cli:app"
+
+[project.entry-points."fsspec.specs"]
+gdrive = "loadpipe.filesystem:DriveFileSystem"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

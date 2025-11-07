@@ -11,6 +11,7 @@ from .errors import (
     RateLimitError,
     ResumeMismatchError,
 )
+from .filesystem import DriveFileSystem
 from .state import Manifest
 
 __version__ = "0.1.0"
@@ -26,4 +27,5 @@ __all__ = [
     "ResumeMismatchError",
     "IntegrityError",
     "Manifest",
+    "DriveFileSystem",
 ]
