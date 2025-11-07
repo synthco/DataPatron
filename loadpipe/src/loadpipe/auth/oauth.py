@@ -38,9 +38,9 @@ def _load_stored_credentials(paths: AuthPaths) -> Optional[Credentials]:
     try:
         creds = Credentials.from_authorized_user_file(str(paths.token), scopes=list(paths.scopes))
     except Exception as exc:
-        #If token is broken DELETE IT, initialize new auth
+        # If token is broken delete it and re-run auth
         paths.token.unlink(missing_ok=True)
-        raise AuthError(f"Не вдалося прочитати токен з {paths.token}: {exc}") from exc
+        raise AuthError(f"Failed to read token at {paths.token}: {exc}") from exc
     return creds
 
 

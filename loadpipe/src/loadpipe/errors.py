@@ -5,9 +5,9 @@ from typing import Any, Mapping, Optional
 
 
 class LoadpipeError(Exception):
-    """Базовий виняток пакета."""
+    """Base exception for the loadpipe package."""
 
-    default_message = "Невідома помилка Loadpipe."
+    default_message = "Unknown loadpipe error."
 
     def __init__(
         self,
@@ -37,9 +37,9 @@ class LoadpipeError(Exception):
 
 
 class AuthError(LoadpipeError):
-    """Помилка авторизації Google OAuth."""
+    """Issues related to Google OAuth authentication flows."""
 
-    default_message = "Операція авторизації не вдалася."
+    default_message = "Authentication failed."
 
     def __init__(
         self,
@@ -52,14 +52,14 @@ class AuthError(LoadpipeError):
         ctx = dict(context or {})
         if path is not None:
             ctx.setdefault("path", str(path))
-            hint = hint or "Перевірте client_secrets.json та токен авторизації."
+            hint = hint or "Check client_secrets.json and stored token."
         super().__init__(message, hint=hint, context=ctx)
 
 
 class ConfigError(LoadpipeError):
-    """Помилка валідaції конфігурації."""
+    """Raised when configuration parsing or validation fails."""
 
-    default_message = "Конфігурацію не вдалося опрацювати."
+    default_message = "Unable to process configuration."
 
     def __init__(
         self,
@@ -72,14 +72,14 @@ class ConfigError(LoadpipeError):
         ctx = dict(context or {})
         if path is not None:
             ctx.setdefault("path", str(path))
-            hint = hint or "Перевірте файл конфігурації та його схему."
+            hint = hint or "Verify the config file and its schema."
         super().__init__(message, hint=hint, context=ctx)
 
 
 class RateLimitError(LoadpipeError):
-    """Перевищено ліміт запитів до API."""
+    """API request rate limit exceeded."""
 
-    default_message = "Перевищено ліміт запитів."
+    default_message = "Rate limit exceeded."
 
     def __init__(
         self,
@@ -92,18 +92,17 @@ class RateLimitError(LoadpipeError):
         ctx = dict(context or {})
         if retry_after is not None:
             ctx.setdefault("retry_after", retry_after)
-            hint = hint or f"Спробуйте повторити через {retry_after} секунд."
+            hint = hint or f"Retry after {retry_after} seconds."
         super().__init__(message, hint=hint, context=ctx)
 
 
 class ResumeMismatchError(LoadpipeError):
-    """Конфлікт кешованих метаданих завантаження."""
+    """Stored metadata does not match the remote file anymore."""
 
-    default_message = "Збережені метадані не збігаються з файлом на сервері."
+    default_message = "Cached metadata no longer matches the server file."
 
 
 class IntegrityError(LoadpipeError):
-    """Проблема з цілісністю локального сховища."""
+    """Local cache or manifest integrity issue."""
 
-    default_message = "Маніфест або кеш пошкоджено."
-
+    default_message = "Manifest or cache appears corrupted."

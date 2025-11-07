@@ -1,9 +1,9 @@
 
-# Конфіги `loadpipe`
+# `loadpipe` configs
 
-Файл конфігурації — YAML. За замовчуванням очікується шлях `configs/config.yaml`.
+Configuration lives in YAML. The default path is `configs/config.yaml`.
 
-## Розділи та поля
+## Sections and fields
 
 ```yaml
 runtime:
@@ -14,7 +14,7 @@ runtime:
   log_dir: ".logs"
 
 auth:
-  # шлях до client_secrets.json (для OAuth) і файл токена
+  # paths to client_secrets.json (OAuth) and the token file
   client_secrets_path: ".secrets/client_secrets.json"
   token_path: ".secrets/token.json"
   scopes:
@@ -22,7 +22,7 @@ auth:
 
 source:
   folder_id: "DRIVE_FOLDER_ID"
-  pattern: "*.zst"   # опційно
+  pattern: "*.zst"   # optional
 
 download:
   chunk_mb: 64
@@ -32,10 +32,10 @@ process:
 
 upload:
   folder_id: "DRIVE_TARGET_FOLDER_ID"
-  name_suffix: ""    # опційно
+  name_suffix: ""    # optional
 ```
 
-## Використання
+## Usage
 ```bash
 lp sync --config configs/config.yaml
 ```

@@ -47,7 +47,7 @@ def _http_request_with_retries(service: Any, url: str, *, method: str, headers: 
         status = getattr(response, "status", None)
         if _should_retry(status):
             raise HttpError(response, content, uri=url)
-        if status is not None and status >= 400 and status not in {308}:  # 308 використовується для незавершених завантажень
+        if status is not None and status >= 400 and status not in {308}:  # 308 == resumable upload incomplete
             raise HttpError(response, content, uri=url)
         return response, content
 
@@ -70,7 +70,7 @@ class UploadSession:
     total: Optional[int] = None
 
 def build_service(credentials: Any) -> Any:
-    """Побудувати клієнт Google Drive API v3."""
+    """Construct a Google Drive API v3 client."""
 
     def _build_action():
         return _build("drive", "v3", credentials=credentials, cache_discovery=False)
@@ -78,10 +78,10 @@ def build_service(credentials: Any) -> Any:
     try:
         return _execute_with_retries(_build_action)
     except HttpError as exc:
-        raise RuntimeError(f"Не вдалося ініціалізувати сервіс Google Drive: {exc}") from exc
+        raise RuntimeError(f"Failed to initialize Google Drive service: {exc}") from exc
 
 def list_files(service: Any, folder_id: str, pattern: Optional[str] = None) -> List[FileMeta]:
-    """Повернути список файлів вказаної теки."""
+    """Return a list of files for a given Drive folder."""
 
     query_parts = [f"'{folder_id}' in parents", "trashed = false"]
     if pattern:
@@ -131,7 +131,7 @@ def stat(service: Any, file_id: str) -> FileMeta:
 
 def download_range(service: Any, file_id: str, start: int, end: int) -> bytes:
     if start < 0 or end < start:
-        raise ValueError("Невірний діапазон байтів")
+        raise ValueError("Invalid byte range")
 
     url = f"https://www.googleapis.com/drive/v3/files/{file_id}?alt=media"
     headers = {"Range": f"bytes={start}-{end}"}
@@ -162,15 +162,15 @@ def begin_resumable_upload(service: Any, name: str, folder_id: str, size: Option
     )
     session_url = response.get("location") or response.get("Location")
     if not session_url:
-        raise RuntimeError("Не вдалося отримати Location для резюмованого завантаження")
+        raise RuntimeError("Unable to obtain upload session Location header")
 
     return UploadSession(session_url=session_url, name=name, folder_id=folder_id, total=size)
 
 def upload_chunk(service: Any, session: UploadSession, data: bytes, start: int, end: int, total: Optional[int] = None) -> int:
     if end < start:
-        raise ValueError("Некоректні межі фрагмента")
+        raise ValueError("Invalid chunk boundaries")
     if len(data) != end - start + 1:
-        raise ValueError("Довжина буфера не відповідає Content-Range")
+        raise ValueError("Chunk buffer length does not match Content-Range")
 
     total_bytes = total or session.total
     range_total = str(total_bytes) if total_bytes is not None else "*"
