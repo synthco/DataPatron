@@ -166,6 +166,56 @@ def begin_resumable_upload(service: Any, name: str, folder_id: str, size: Option
 
     return UploadSession(session_url=session_url, name=name, folder_id=folder_id, total=size)
 
+
+def query_upload_status(service: Any, session: UploadSession, total: Optional[int] = None) -> int:
+    """Return the next expected byte offset for a resumable upload session."""
+
+    total_bytes = total or session.total
+    range_total = str(total_bytes) if total_bytes is not None else "*"
+    headers = {
+        "Content-Length": "0",
+        "Content-Range": f"bytes */{range_total}",
+        "Content-Type": "application/octet-stream",
+    }
+
+    def _do_request():
+        response, content = _authorized_http(service).request(
+            session.session_url,
+            method="PUT",
+            headers=headers,
+            body=b"",
+        )
+        status = getattr(response, "status", None)
+        if _should_retry(status):
+            raise HttpError(response, content, uri=session.session_url)
+        if status is not None and status >= 400 and status not in {308}:
+            raise HttpError(response, content, uri=session.session_url)
+        return response, content
+
+    response, content = _execute_with_retries(_do_request)
+    status = getattr(response, "status", None)
+    if status == 308:
+        range_header = response.get("Range") or response.get("range")
+        if range_header:
+            match = re.search(r"bytes=(\d+)-(\d+)", range_header)
+            if match:
+                return int(match.group(2)) + 1
+        return 0
+
+    if status in {200, 201}:
+        if content:
+            try:
+                payload = json.loads(content.decode("utf-8"))
+                if "size" in payload:
+                    return int(payload["size"])
+            except (ValueError, TypeError):
+                pass
+        if total_bytes is not None:
+            return int(total_bytes)
+
+    return 0
+
+
 def upload_chunk(service: Any, session: UploadSession, data: bytes, start: int, end: int, total: Optional[int] = None) -> int:
     if end < start:
         raise ValueError("Invalid chunk boundaries")

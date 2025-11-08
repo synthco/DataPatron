@@ -81,11 +81,38 @@ def upload_iter(
             updated_at=now_iso,
         )
 
+    resume_skip = bytes_done
+    if resume_skip:
+        try:
+            remote_offset = gdrive.query_upload_status(service, session, total=known_total)
+        except Exception as exc:  # pragma: no cover - defensive safety net
+            raise ResumeMismatchError("Unable to determine remote upload offset") from exc
+
+        if remote_offset < 0:
+            raise ResumeMismatchError("Remote upload offset cannot be negative")
+        if known_total is not None and remote_offset > known_total:
+            raise ResumeMismatchError("Remote upload offset exceeds expected total size")
+
+        if remote_offset != resume_skip:
+            logger.warning(
+                "Adjusting resumable upload offset from %s to %s", resume_skip, remote_offset
+            )
+            bytes_done = remote_offset
+            resume_skip = remote_offset
+            manifest.upsert_upload(
+                session_id=session_url or session.session_url,
+                file_id=None,
+                name=session.name,
+                folder_id=session.folder_id,
+                bytes_done=bytes_done,
+                total=known_total,
+                updated_at=dt.datetime.utcnow().isoformat(),
+            )
+
     offset = bytes_done
     last_log_at = time.monotonic()
     last_logged_bytes = bytes_done
     data_iterator = iter(data_iter)
-    resume_skip = bytes_done
 
     def _emit() -> Iterator[int]:
         nonlocal offset, bytes_done, known_total, last_log_at, last_logged_bytes
