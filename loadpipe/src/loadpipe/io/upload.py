@@ -84,6 +84,8 @@ def upload_iter(
     offset = bytes_done
     last_log_at = time.monotonic()
     last_logged_bytes = bytes_done
+    data_iterator = iter(data_iter)
+    resume_skip = bytes_done
 
     def _emit() -> Iterator[int]:
         nonlocal offset, bytes_done, known_total, last_log_at, last_logged_bytes
@@ -103,7 +105,35 @@ def upload_iter(
             log_progress(logger, _LOG_STAGE, bytes_done, known_total, 0, None)
             return
 
-        for chunk in data_iter:
+        def _aligned_chunks() -> Iterator[bytes]:
+            if resume_skip <= 0:
+                yield from data_iterator
+                return
+
+            skipped = 0
+            while skipped < resume_skip:
+                try:
+                    chunk = next(data_iterator)
+                except StopIteration as exc:
+                    raise ResumeMismatchError(
+                        "Local data stream shorter than recorded upload offset"
+                    ) from exc
+                if not chunk:
+                    continue
+
+                chunk_len = len(chunk)
+                remaining = resume_skip - skipped
+                if chunk_len <= remaining:
+                    skipped += chunk_len
+                    continue
+
+                yield chunk[remaining:]
+                skipped = resume_skip
+                break
+
+            yield from data_iterator
+
+        for chunk in _aligned_chunks():
             if not chunk:
                 continue
 
