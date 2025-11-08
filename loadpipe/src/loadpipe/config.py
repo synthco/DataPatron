@@ -65,11 +65,11 @@ class Config:
         except TypeError as e:
             raise ConfigError(f"Invalid config schema: {e}")
 
-        # Валідації
+        # Validation
         if download.chunk_mb <= 0:
             raise ConfigError("download.chunk_mb must be > 0")
         if source.folder_id == "":
-            # дозволяємо порожній у заглушках list/pull/push, але для sync потрібен
+            # allow empty for list/pull/push placeholders, but sync requires it
             pass
         if upload.folder_id is None:
             upload.folder_id = ""
