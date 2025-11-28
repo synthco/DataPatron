@@ -19,7 +19,7 @@ con.sql(f"""
         to_timestamp(CAST(created_utc AS BIGINT)) as created_at,
         subreddit,
         title,
-        selftext,
+        selftext,   
         score,
         upvote_ratio,
         num_comments,
