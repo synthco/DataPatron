@@ -6,7 +6,7 @@ from pathlib import Path
 data_dir = Path("/Users/ivantyshchenko/Projects/Python/DataPatron/data")
 SUBMISSIONS_CSV = data_dir / "filtered_submissions.csv"
 COMMENTS_CSV = data_dir / "filtered_comments.csv"
-DB_FILE = data_dir / "reddit.duckdb"
+DB_FILE = data_dir / "reddit.db"
 
 con =duckdb.connect(DB_FILE)
 
@@ -16,7 +16,6 @@ con.sql(f"""
     SELECT 
         id,
         author,
-        -- Конвертація epoch seconds в datetime
         to_timestamp(CAST(created_utc AS BIGINT)) as created_at,
         subreddit,
         title,
@@ -36,7 +35,6 @@ con.sql(f"""
     CREATE OR REPLACE TABLE comments AS 
     SELECT 
         id,
-        -- Прибираємо 't3_' якщо воно є, залишаючи чистий ID поста
         CASE WHEN link_id LIKE 't3_%' THEN substr(link_id, 4) ELSE link_id END as submission_id,
         parent_id,
         author,
