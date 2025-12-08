@@ -26,7 +26,7 @@ The project explores Reddit activity to measure attitudes toward Ukraine. It cle
 - OS-agnostic; tested locally with Python 3.10.
 
 ## Dataset
-- Source link: _TBD — add dataset URL here once finalized._
+- Source link: [data](https://drive.google.com/drive/folders/1sy9c-g0po_-iDU87chy4vsd0RJ7i3sk2?usp=sharing)
 
 ## Files and folder structure
 - `notebooks/` — primary analysis notebooks, including `ucsq_analysis.ipynb`.
