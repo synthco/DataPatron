@@ -29,11 +29,20 @@ The project explores Reddit activity to measure attitudes toward Ukraine. It cle
 - Source link: _TBD — add dataset URL here once finalized._
 
 ## Files and folder structure
-- `notebooks/` — primary analysis notebooks, including `ucsq_analysis.ipynb`.
+- `notebooks/` — primary analysis notebooks (see details below).
 - `notebooks/Loading/` — helper scripts for converting `.zst` dumps to CSV and initializing a SQLite dump.
 - `data/` — local storage for CSVs and generated artifacts (not versioned).
 - `loadpipe/` — archived CLI for syncing with Google Drive; currently frozen and not used in this research.
 - `requirements.txt` — Python dependencies for the analysis workflow.
+
+### Notebooks overview
+- `notebooks/CS_project.ipynb` — Colab-oriented scaffold for working with the project data in Google Drive (mounting, basic setup).
+- `notebooks/Scoring.ipynb` — experiments with scoring and visualizing Reddit data using pandas, seaborn/matplotlib, and transformer-based pipelines.
+- `notebooks/Sub_filtering.ipynb` — embedding-based filtering of pro-Ukrainian messages using multilingual sentence embeddings (`paraphrase-multilingual-MiniLM-L12-v2`).
+- `notebooks/press.ipynb` — press-style visualizations and plots (heatmaps, color mapping) for presenting key results.
+- `notebooks/ucsq_analysis.ipynb` — main exploratory analysis of Ukrainian-support measures (UCSQ) across time, subreddits, and content types.
+- `notebooks/ucsq_corr_analysis.ipynb` — correlation analysis between UCSQ/efficiency metrics and text/topic features (gradient boosting feature importances, topic modeling).
+- `notebooks/zst_parse.ipynb` — parsing large `.zst` Reddit dumps in Colab and preparing them for downstream filtering/export.
 
 ## Notes
 - Keep secrets and large data files out of version control; `.gitignore` already covers common cases.
